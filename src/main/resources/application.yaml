@@ -1,14 +1,24 @@
 spring:
   application:
     name: analytics
-spring.jpa:
-  database: POSTGRESQL
-  hibernate.ddl-auto: create-drop
-  show-sql: true
 
-spring.datasource:
-  platform: postgres
-  driverClassName: org.postgresql.Driver
-  url: jdbc:postgresql://localhost:5432/analytics
-  username: postgres
-  password: root
+  jpa:
+    database: POSTGRESQL
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+  datasource:
+    platform: postgres
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/analytics
+    username: postgres
+    password: root
+
+
+finnhub:
+  api:
+    key: ${API_KEY}
+
+server:
+  port: 8081
