@@ -15,6 +15,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
+
 @Entity
 @Table(name="sector_analysis")
 @Data
@@ -32,7 +35,7 @@ public class SectorAnalysisEntity {
     private SectorAnalysisKey id;
 
     @Column(name = "invested_price")
-    private float investedPrice;
+    private BigDecimal investedPrice;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

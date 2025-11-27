@@ -7,8 +7,6 @@ spring:
     username: postgres
     password: root
     driver-class-name: org.postgresql.Driver
-    platform: postgres
-
   jpa:
     database: POSTGRESQL
     hibernate:
@@ -26,6 +24,9 @@ spring:
       group-id: transaction-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  sql:
+    init:
+      platform: postgres
 
 finnhub:
   api:
@@ -35,4 +36,4 @@ app:
   kafka-topic: demo-topic
 
 server:
-  port: 8081
+  port: 8082
