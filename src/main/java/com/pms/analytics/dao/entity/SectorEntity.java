@@ -19,6 +19,9 @@ public class SectorEntity {
     @Column(name = "symbol")
     private String symbol;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "sector")
     private String sector;
 }

@@ -1,6 +1,5 @@
 package com.pms.analytics.service;
 
-import static java.lang.System.out;
 import java.math.BigDecimal;
 import java.util.Optional;
 
@@ -64,16 +63,21 @@ public class TransactionListenerService {
         try {
             TransactionDto transactionDto = objectMapper.readValue(message, TransactionDto.class);
 
-            out.println("Converted DTO: " + transactionDto);
+            System.out.println("Converted DTO: " + transactionDto);
 
             Optional<PositionEntity> position = positionDao.findById(new PositionKey(transactionDto.getPortfolioId(),transactionDto.getSymbol()));
+            
             Optional<PnlEntity> existing = pnlDao.findById(transactionDto.getTransactionId());
+            
             SectorEntity sector = sectorDao.findById(transactionDto.getSymbol()).get();
+            
             Optional<SectorAnalysisEntity> sectorAnalysis = sectorAnalysisDao.findById(new SectorAnalysisKey(transactionDto.getPortfolioId(), sector.getSector()));
 
             if(existing.isPresent()){
                 System.out.println("Existing transction should be handled");
-            }else{
+            }
+            
+            else{
                 System.out.println("No Existing transction");
                 PnlEntity newPnl = new PnlEntity();
                 newPnl.setTransactionId(transactionDto.getTransactionId());
@@ -103,12 +107,14 @@ public class TransactionListenerService {
                     if(sectorAnalysis.isPresent()){
                         SectorAnalysisEntity secAnalysis = sectorAnalysis.get();
                         BigDecimal invested = secAnalysis.getInvestedPrice();
-                        secAnalysis.setInvestedPrice(invested.add(transactionDto.getBuyPrice()));
+                        BigDecimal quantity = BigDecimal.valueOf(transactionDto.getQuantity());
+                        secAnalysis.setInvestedPrice(invested.add(transactionDto.getBuyPrice().multiply(quantity)));
                         sectorAnalysisDao.save(secAnalysis);
                     }else{
                         SectorAnalysisEntity secAnalysis = new SectorAnalysisEntity();
                         secAnalysis.setId(new SectorAnalysisKey(transactionDto.getPortfolioId(), sector.getSector()));
-                        secAnalysis.setInvestedPrice(transactionDto.getBuyPrice());
+                        BigDecimal quantity = BigDecimal.valueOf(transactionDto.getQuantity());
+                        secAnalysis.setInvestedPrice(transactionDto.getBuyPrice().multiply(quantity));
                         sectorAnalysisDao.save(secAnalysis);
                     }
                 }else{
@@ -127,7 +133,8 @@ public class TransactionListenerService {
                     if(sectorAnalysis.isPresent()){
                         SectorAnalysisEntity secAnalysis = sectorAnalysis.get();
                         BigDecimal invested = secAnalysis.getInvestedPrice();
-                        secAnalysis.setInvestedPrice(invested.subtract(transactionDto.getBuyPrice()));
+                        BigDecimal quantity = BigDecimal.valueOf(transactionDto.getQuantity());
+                        secAnalysis.setInvestedPrice(invested.subtract(transactionDto.getBuyPrice().multiply(quantity)));
                         sectorAnalysisDao.save(secAnalysis);
                     }
                 }
