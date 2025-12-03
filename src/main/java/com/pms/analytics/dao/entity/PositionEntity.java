@@ -1,6 +1,7 @@
 package com.pms.analytics.dao.entity;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -27,6 +28,9 @@ public class PositionEntity {
 
     @Column(name = "holdings")
     private Long holdings;
+
+    @Column(name = "total_invested")
+    private BigDecimal totalInvested;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

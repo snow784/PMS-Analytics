@@ -51,8 +51,8 @@ public class PnlEntity {
     @Column(name = "realized_pnl")
     private BigDecimal realizedPnl;
 
-    @Column(name = "unrealized_pnl")
-    private BigDecimal unrealizedPnl;
+    // @Column(name = "unrealized_pnl")
+    // private BigDecimal unrealizedPnl;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

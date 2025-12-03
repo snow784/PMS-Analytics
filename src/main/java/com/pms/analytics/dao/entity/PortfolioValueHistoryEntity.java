@@ -1,37 +1,34 @@
 package com.pms.analytics.dao.entity;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name="risk")
+@Table(name = "portfolio_value_history")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RiskEntity {
+public class PortfolioValueHistoryEntity {
 
     @Id
+    @GeneratedValue
+    private UUID id;
+
     @Column(name = "portfolio_id")
     private UUID portfolioId;
 
-    @Column(name = "avg_rate_of_return")
-    private float avgRateOfReturn;
+    @Column(name = "date")
+    private LocalDate date;
 
-    @Column(name = "sharpe_ratio")
-    private float sharpeRatio;
-
-    @Column(name = "sortino_ratio")
-    private float sortinoRatio;
+    @Column(name = "portfolio_value")
+    private BigDecimal portfolioValue;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -40,13 +37,13 @@ public class RiskEntity {
     private Instant updatedAt;
 
     @PrePersist
-    protected void onCreate(){
+    protected void onCreate() {
         createdAt = Instant.now();
         updatedAt = Instant.now();
     }
 
     @PreUpdate
-    protected void onUpdate(){
+    protected void onUpdate() {
         updatedAt = Instant.now();
     }
 }

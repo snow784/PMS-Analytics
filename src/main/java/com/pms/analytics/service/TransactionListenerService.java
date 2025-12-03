@@ -22,7 +22,10 @@ import com.pms.analytics.dao.entity.SectorAnalysisEntity;
 import com.pms.analytics.dao.entity.SectorAnalysisEntity.SectorAnalysisKey;
 import com.pms.analytics.dao.entity.SectorEntity;
 import com.pms.analytics.dto.TransactionDto;
+import com.pms.analytics.service.currentPrice.ExternalPriceClient;
 import com.pms.analytics.utilities.TradeSide;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class TransactionListenerService {
@@ -51,12 +54,9 @@ public class TransactionListenerService {
         this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
+    @Transactional
     @KafkaListener(topics = "${app.kafka-topic}", groupId = "transaction-group")
-    public void listen(@Payload(required = false) String message) {
-        if (message == null || message.trim().isEmpty()) {
-            System.out.println("Received empty message, ignoring...");
-            return;
-        }
+    public void listen(@Payload(required = true) String message) {
 
         System.out.println("Raw message: " + message);
 
@@ -69,7 +69,7 @@ public class TransactionListenerService {
             
             Optional<PnlEntity> existing = pnlDao.findById(transactionDto.getTransactionId());
             
-            SectorEntity sector = sectorDao.findById(transactionDto.getSymbol()).get();
+            SectorEntity sector = sectorDao.findById(transactionDto.getSymbol()).orElseThrow(() -> new RuntimeException("Sector not found: " + transactionDto.getSymbol()));;
             
             Optional<SectorAnalysisEntity> sectorAnalysis = sectorAnalysisDao.findById(new SectorAnalysisKey(transactionDto.getPortfolioId(), sector.getSector()));
 
@@ -87,20 +87,22 @@ public class TransactionListenerService {
                 if(transactionDto.getSide().equals(TradeSide.BUY)) {
                     newPnl.setBuyPrice(transactionDto.getBuyPrice());
                     newPnl.setRemainingQuantity(transactionDto.getRemainingQuantity());
-                    BigDecimal currentPrice = externalPriceClient.getCurrentPrice(transactionDto.getSymbol());
-                    BigDecimal unrealizedPnl = (BigDecimal) (currentPrice.subtract(transactionDto.getBuyPrice())).multiply(BigDecimal.valueOf(transactionDto.getRemainingQuantity()));
-                    newPnl.setUnrealizedPnl(unrealizedPnl);
-                    System.out.println("Unrealized PnL: "+ unrealizedPnl);
+                    // BigDecimal currentPrice = externalPriceClient.getCurrentPrice(transactionDto.getSymbol());
+                    // BigDecimal unrealizedPnl = (BigDecimal) (currentPrice.subtract(transactionDto.getBuyPrice())).multiply(BigDecimal.valueOf(transactionDto.getRemainingQuantity()));
+                    // newPnl.setUnrealizedPnl(unrealizedPnl);
+                    // System.out.println("Unrealized PnL: "+ unrealizedPnl);
                     if(position.isPresent()){
                         PositionEntity pos = position.get();
                         long holdings = pos.getHoldings();
                         pos.setHoldings(holdings+transactionDto.getRemainingQuantity());
+                        pos.setTotalInvested(pos.getTotalInvested().add(transactionDto.getBuyPrice().multiply(BigDecimal.valueOf(transactionDto.getQuantity()))));
                         System.out.println("Position: " + pos);
                         positionDao.save(pos);
                     }else{
                         PositionEntity pos = new PositionEntity();
                         pos.setId(new PositionKey(transactionDto.getPortfolioId(),transactionDto.getSymbol()));
                         pos.setHoldings(transactionDto.getRemainingQuantity());
+                        pos.setTotalInvested(transactionDto.getBuyPrice().multiply(BigDecimal.valueOf(transactionDto.getQuantity())));
                         System.out.println("Position: " + pos);
                         positionDao.saveAndFlush(pos);
                     }
@@ -125,8 +127,9 @@ public class TransactionListenerService {
                     System.out.println("Realized PnL: "+ realizedPnl);
                     if(position.isPresent()){
                         PositionEntity pos = position.get();
-                        long holdings = pos.getHoldings();
-                        pos.setHoldings(holdings-transactionDto.getQuantity());
+                        long updatedHoldings = pos.getHoldings() - transactionDto.getQuantity();
+                        pos.setHoldings(Math.max(updatedHoldings, 0L));
+                        pos.setTotalInvested((pos.getTotalInvested().subtract(transactionDto.getBuyPrice().multiply(BigDecimal.valueOf(transactionDto.getQuantity())))).max(BigDecimal.ZERO));
                         System.out.println("Position: " + pos);
                         positionDao.save(pos);
                     }
@@ -134,7 +137,7 @@ public class TransactionListenerService {
                         SectorAnalysisEntity secAnalysis = sectorAnalysis.get();
                         BigDecimal invested = secAnalysis.getInvestedPrice();
                         BigDecimal quantity = BigDecimal.valueOf(transactionDto.getQuantity());
-                        secAnalysis.setInvestedPrice(invested.subtract(transactionDto.getBuyPrice().multiply(quantity)));
+                        secAnalysis.setInvestedPrice((invested.subtract(transactionDto.getBuyPrice().multiply(quantity))).max(BigDecimal.ZERO));
                         sectorAnalysisDao.save(secAnalysis);
                     }
                 }
