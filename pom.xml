@@ -26,11 +26,13 @@
 		<tag/>
 		<url/>
 	</scm>
-	<properties>
-		<java.version>21</java.version>
-		<spring-cloud.version>2025.0.0</spring-cloud.version>
-	</properties>
-	<repositories>
+    <properties>
+        <java.version>21</java.version>
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
+        <protoc.executable.os>linux-x86_64</protoc.executable.os>
+    </properties>
+
+    <repositories>
         <repository>
             <id>confluent</id>
             <url>https://packages.confluent.io/maven/</url>
@@ -158,32 +160,20 @@
 					</excludes>
 				</configuration>
 			</plugin>
-			<plugin>
+            <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
                 <version>0.6.1</version>
-
                 <configuration>
-                    <addSources>true</addSources>
                     <!-- Location of .proto files -->
                     <protoSourceRoot>${project.basedir}/src/main/proto</protoSourceRoot>
-                    <testProtoSourceRoot>${project.basedir}/src/test/proto</testProtoSourceRoot>
 
                     <!-- Where Java files will be generated -->
-                    <outputDirectory>
-                        ${project.build.directory}/generated-sources/protobuf/java
-                    </outputDirectory>
-                    <testOutputDirectory>
-                        ${project.build.directory}/generated-test-sources/protobuf/java
-                    </testOutputDirectory>
+                    <outputDirectory>${project.build.directory}/generated-sources/protobuf/java</outputDirectory>
 
-                    <!-- Required for google/protobuf/timestamp.proto -->
-                    <includeStdTypes>true</includeStdTypes>
 
-                    <!-- Protoc version MUST match protobuf-java -->
-                    <protocArtifact>
-                        com.google.protobuf:protoc:3.25.3:exe:windows-x86_64
-                    </protocArtifact>
+                    <protocArtifact>com.google.protobuf:protoc:3.25.3:exe:${protoc.executable.os}</protocArtifact>
+
                 </configuration>
 
                 <executions>
@@ -192,12 +182,12 @@
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>compile</goal>
-                            <goal>test-compile</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
-		</plugins>
+
+        </plugins>
 	</build>
 
 </project>

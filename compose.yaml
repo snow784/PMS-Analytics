@@ -1,6 +1,85 @@
+#version: "3.9"
+#
+#services:
+#  postgres:
+#    image: postgres:16
+#    container_name: postgres
+#    environment:
+#      POSTGRES_DB: analytics
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: root
+#    ports:
+#      - "5432:5432"
+#    networks:
+#      - backend
+#
+#  redis:
+#    image: redis:latest
+#    container_name: redis
+#    ports:
+#      - "6379:6379"
+#    networks:
+#      - backend
+#
+#  zookeeper:
+#    image: confluentinc/cp-zookeeper:7.5.0
+#    container_name: zookeeper
+#    environment:
+#      ZOOKEEPER_CLIENT_PORT: 2181
+#      ZOOKEEPER_TICK_TIME: 2000
+#    ports:
+#      - "2181:2181"
+#    networks:
+#      - backend
+#
+#  kafka:
+#    image: confluentinc/cp-kafka:7.5.0
+#    container_name: kafka
+#    depends_on:
+#      - zookeeper
+#    ports:
+#      - "19092:9092" # host:container
+#    environment:
+#      KAFKA_BROKER_ID: 1
+#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#
+#      # Listeners
+#      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:19092
+#      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:19092
+#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+#      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+#
+#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+#      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+#    networks:
+#      - backend
+#
+#  analytics-app:
+#    build: .
+#    container_name: analytics-app
+#    depends_on:
+#      - postgres
+#      - redis
+#      - kafka
+#    environment:
+#      SPRING_PROFILES_ACTIVE: docker
+#      API_KEY: your_finnhub_api_key_here
+#    ports:
+#      - "8082:8082"
+#    networks:
+#      - backend
+#
+#networks:
+#  backend:
+#    driver: bridge
+
 version: "3.9"
 
 services:
+  # ===============================
+  # Postgres
+  # ===============================
   postgres:
     image: postgres:16
     container_name: postgres
@@ -13,6 +92,9 @@ services:
     networks:
       - backend
 
+  # ===============================
+  # Redis
+  # ===============================
   redis:
     image: redis:latest
     container_name: redis
@@ -21,8 +103,11 @@ services:
     networks:
       - backend
 
+  # ===============================
+  # Kafka + Zookeeper
+  # ===============================
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
+    image: confluentinc/cp-zookeeper:7.6.0
     container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -33,28 +118,46 @@ services:
       - backend
 
   kafka:
-    image: confluentinc/cp-kafka:7.5.0
+    image: confluentinc/cp-kafka:7.6.0
     container_name: kafka
     depends_on:
       - zookeeper
     ports:
-      - "19092:9092" # host:container
+      - "9092:9092"     # for Spring app to connect
+      - "29092:29092"   # internal Kafka cluster
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-
-      # Listeners
-      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:19092
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:19092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
     networks:
       - backend
 
+  # ===============================
+  # Schema Registry
+  # ===============================
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.0
+    container_name: schema-registry
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:29092
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
+    networks:
+      - backend
+
+  # ===============================
+  # Spring Boot App
+  # ===============================
   analytics-app:
     build: .
     container_name: analytics-app
@@ -62,8 +165,15 @@ services:
       - postgres
       - redis
       - kafka
+      - schema-registry
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/analytics
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_REDIS_HOST: redis
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       API_KEY: your_finnhub_api_key_here
     ports:
       - "8082:8082"
@@ -73,3 +183,4 @@ services:
 networks:
   backend:
     driver: bridge
+

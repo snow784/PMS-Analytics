@@ -1,6 +1,9 @@
 package com.pms.analytics.publisher;
 
 import com.pms.analytics.dto.TransactionDto;
+import com.pms.analytics.dto.TransactionOuterClass.Transaction;
+import com.pms.analytics.mapper.TransactionMapper;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -9,11 +12,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TransactionPublisher {
 
-    private final KafkaTemplate<String, TransactionDto> kafkaTemplate;
-    private static final String TOPIC = "transactions-topic";
+    private final KafkaTemplate<String, Transaction> kafkaTemplate;
 
-    public void sendTransaction(TransactionDto transaction) {
-        kafkaTemplate.send(TOPIC, transaction);
-        System.out.println("Message sent to Kafka: " + transaction);
+    public void sendTransaction(TransactionDto dto) {
+        Transaction protoMsg = TransactionMapper.toProto(dto);
+        kafkaTemplate.send("transactions-topic", protoMsg);
+        System.out.println("Published Transaction: " + protoMsg);
     }
 }

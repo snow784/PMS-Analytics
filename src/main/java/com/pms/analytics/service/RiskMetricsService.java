@@ -8,6 +8,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.pms.analytics.dao.AnalysisOutboxDao;
+import com.pms.analytics.dao.entity.AnalysisOutbox;
+import com.pms.analytics.dto.RiskEventOuterClass;
+import com.pms.analytics.mapper.RiskEventMapper;
 import org.springframework.stereotype.Service;
 
 import com.pms.analytics.dao.AnalysisDao;
@@ -26,6 +30,7 @@ public class RiskMetricsService {
     private final PortfolioValueHistoryDao historyDao;
     private final RedisPriceCache priceCache;
     private final AnalysisDao analysisDao;
+    private final AnalysisOutboxDao analysisOutboxDao;
 
     private static final int SCALE = 8;
     private static final MathContext MC = new MathContext(10, RoundingMode.HALF_UP);
@@ -121,6 +126,14 @@ public class RiskMetricsService {
                         : 0f                   // Sortino Ratio
         );
 
+        RiskEventOuterClass.RiskEvent proto = RiskEventMapper.toProto(event);
+
+        AnalysisOutbox outbox = new AnalysisOutbox();
+        outbox.setPortfolioId(portfolioId);
+        outbox.setPayload(proto.toByteArray());
+        outbox.setStatus("PENDING");
+
+        analysisOutboxDao.save(outbox);
         return Optional.of(event);
     }
 }
