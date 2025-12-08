@@ -1,14 +1,13 @@
-package com.pms.analytics.service.scheduler;
+package com.pms.analytics.scheduler;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.pms.analytics.dao.PnlDao;
-import com.pms.analytics.service.currentPrice.ExternalPriceClient;
-import com.pms.analytics.service.currentPrice.RedisPriceCache;
+import com.pms.analytics.dao.TransactionsDao;
+import com.pms.analytics.externalRedis.ExternalPriceClient;
+import com.pms.analytics.externalRedis.RedisPriceCache;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,12 +17,13 @@ public class PriceUpdateScheduler {
 
     private final ExternalPriceClient priceClient;
     private final RedisPriceCache priceCache;
-    private final PnlDao pnlDao;
+    private final TransactionsDao transactionsDao;
 
-    @Scheduled(fixedRate = 10000) // every 2 seconds
+    @Scheduled(fixedRate = 10000)
     public void refreshPrices() {
 
-        List<String> symbols = pnlDao.findAllActiveSymbols();
+        List<String> symbols = transactionsDao.findAllActiveSymbols();
+        if (symbols.isEmpty()) return;
 
         symbols.forEach(symbol ->
             priceClient.fetchPriceAsync(symbol)
@@ -31,4 +31,3 @@ public class PriceUpdateScheduler {
         );
     }
 }
-

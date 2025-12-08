@@ -4,12 +4,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.pms.analytics.utilities.TradeSide;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -35,9 +31,9 @@ public class PnlEntity {
     @Column(name = "symbol")
     private String symbol;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "side")
-    private TradeSide side;
+    // @Enumerated(EnumType.STRING)
+    // @Column(name = "side")
+    // private TradeSide side;
 
     @Column(name = "buy_price")
     private BigDecimal buyPrice;

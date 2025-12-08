@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.pms.analytics.dao.AnalysisDao;
 import com.pms.analytics.dao.PnlDao;
 import com.pms.analytics.dao.PositionDao;
 import com.pms.analytics.dao.SectorAnalysisDao;
@@ -22,7 +23,6 @@ import com.pms.analytics.dao.entity.SectorAnalysisEntity;
 import com.pms.analytics.dao.entity.SectorAnalysisEntity.SectorAnalysisKey;
 import com.pms.analytics.dao.entity.SectorEntity;
 import com.pms.analytics.dto.TransactionDto;
-import com.pms.analytics.service.currentPrice.ExternalPriceClient;
 import com.pms.analytics.utilities.TradeSide;
 
 import jakarta.transaction.Transactional;
@@ -32,6 +32,9 @@ public class TransactionListenerService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private AnalysisDao analysisDao;
 
     @Autowired
     private PnlDao pnlDao;
@@ -44,9 +47,6 @@ public class TransactionListenerService {
 
     @Autowired
     private SectorAnalysisDao sectorAnalysisDao;
-
-    @Autowired
-    ExternalPriceClient externalPriceClient;
 
     public TransactionListenerService() {
         this.objectMapper = new ObjectMapper();
@@ -87,10 +87,6 @@ public class TransactionListenerService {
                 if(transactionDto.getSide().equals(TradeSide.BUY)) {
                     newPnl.setBuyPrice(transactionDto.getBuyPrice());
                     newPnl.setRemainingQuantity(transactionDto.getRemainingQuantity());
-                    // BigDecimal currentPrice = externalPriceClient.getCurrentPrice(transactionDto.getSymbol());
-                    // BigDecimal unrealizedPnl = (BigDecimal) (currentPrice.subtract(transactionDto.getBuyPrice())).multiply(BigDecimal.valueOf(transactionDto.getRemainingQuantity()));
-                    // newPnl.setUnrealizedPnl(unrealizedPnl);
-                    // System.out.println("Unrealized PnL: "+ unrealizedPnl);
                     if(position.isPresent()){
                         PositionEntity pos = position.get();
                         long holdings = pos.getHoldings();

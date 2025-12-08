@@ -1,4 +1,4 @@
-package com.pms.analytics.service.currentPrice;
+package com.pms.analytics.externalRedis;
 
 import java.math.BigDecimal;
 

@@ -3,10 +3,11 @@ spring:
     name: analytics
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/analytics?currentSchema=public
+    url: jdbc:postgresql://postgres:5432/analytics?currentSchema=public
     username: postgres
     password: root
     driver-class-name: org.postgresql.Driver
+
   jpa:
     database: POSTGRESQL
     hibernate:
@@ -16,7 +17,7 @@ spring:
       hibernate.jdbc.time_zone: UTC
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: kafka:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -24,13 +25,14 @@ spring:
       group-id: transaction-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
   sql:
     init:
       platform: postgres
 
   data:
     redis:
-      host: 127.0.0.1
+      host: redis
       port: 6379
 
 finnhub:

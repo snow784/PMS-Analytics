@@ -11,4 +11,7 @@ public interface PortfolioValueHistoryDao extends JpaRepository<PortfolioValueHi
 
     List<PortfolioValueHistoryEntity> findTop30ByPortfolioIdOrderByDateDesc(UUID portfolioId);
 
+    List<PortfolioValueHistoryEntity> findTop29ByPortfolioIdOrderByDateDesc(UUID portfolioId);
+
+    List<PortfolioValueHistoryEntity> findByPortfolioIdAndDateBetween(UUID portfolioId, LocalDate start, LocalDate end);
 }
