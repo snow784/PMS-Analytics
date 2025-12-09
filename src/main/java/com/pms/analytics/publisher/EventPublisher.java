@@ -22,33 +22,33 @@ public class EventPublisher {
     private static final String TOPIC = "portfolio-risk-metrics";
 
     public void publishPendingEvents() {
-        // Fetch all PENDING outbox events
+
         List<AnalysisOutbox> pendingEvents = analysisOutboxDao.findByStatus("PENDING");
 
         for (AnalysisOutbox outbox : pendingEvents) {
             try {
-                // Deserialize the bytes into RiskEvent proto
+
                 RiskEventOuterClass.RiskEvent event = RiskEventOuterClass.RiskEvent.parseFrom(outbox.getPayload());
 
                 kafkaTemplate.send(TOPIC, outbox.getPortfolioId().toString(), event)
                         .whenComplete((result, ex) -> {
                             if (ex == null) {
-                                System.out.println("[Publisher] Successfully sent: " + outbox.getPortfolioId()
+                                System.out.println("Publisher Successfully sent: " + outbox.getPortfolioId()
                                         + " | Kafka Offset: " + result.getRecordMetadata().offset());
-                                // Update status to SENT
+
                                 outbox.setStatus("SENT");
                                 analysisOutboxDao.save(outbox);
                             } else {
-                                System.err.println("[Publisher] Failed to send: " + outbox.getPortfolioId()
+                                System.err.println("Publisher Failed to send: " + outbox.getPortfolioId()
                                         + " | Reason: " + ex.getMessage());
-                                // Optionally retry later
+
                             }
                         });
 
             } catch (Exception e) {
-                System.err.println("[Publisher] Failed to parse proto for outbox: " + outbox.getOutboxId()
+                System.err.println("Publisher Failed to parse proto for outbox: " + outbox.getOutboxId()
                         + " | Reason: " + e.getMessage());
-                // Mark as FAILED if needed
+
                 outbox.setStatus("FAILED");
                 analysisOutboxDao.save(outbox);
             }

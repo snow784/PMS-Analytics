@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public class TransactionMapper {
 
-    // Convert DTO → Proto
+
     public static Transaction toProto(TransactionDto dto) {
         return Transaction.newBuilder()
                 .setTransactionId(dto.getTransactionId().toString())
@@ -22,7 +22,6 @@ public class TransactionMapper {
                 .build();
     }
 
-    // Convert Proto → DTO
     public static TransactionDto fromProto(Transaction proto) {
         return new TransactionDto(
                 UUID.fromString(proto.getTransactionId()),

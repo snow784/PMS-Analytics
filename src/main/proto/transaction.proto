@@ -2,20 +2,20 @@ syntax = "proto3";
 
 package com.pms.analytics.dto;
 
-// Enum for trade side
+
 enum TradeSide {
    UNKNOWN = 0;
     BUY = 1;
     SELL = 2;
 }
 
-// Transaction DTO message
+
 message Transaction {
-    string transactionId = 1;   // UUID as string
-    string portfolioId = 2;     // UUID as string
+    string transactionId = 1;
+    string portfolioId = 2;
     string symbol = 3;
     TradeSide side = 4;
-    string buyPrice = 5;        // BigDecimal as string
-    string sellPrice = 6;       // BigDecimal as string
+    string buyPrice = 5;
+    string sellPrice = 6;
     int64 quantity = 7;
 }

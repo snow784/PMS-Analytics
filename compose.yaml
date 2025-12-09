@@ -77,9 +77,7 @@
 version: "3.9"
 
 services:
-  # ===============================
-  # Postgres
-  # ===============================
+
   postgres:
     image: postgres:16
     container_name: postgres
@@ -92,9 +90,7 @@ services:
     networks:
       - backend
 
-  # ===============================
-  # Redis
-  # ===============================
+
   redis:
     image: redis:latest
     container_name: redis
@@ -103,9 +99,7 @@ services:
     networks:
       - backend
 
-  # ===============================
-  # Kafka + Zookeeper
-  # ===============================
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.0
     container_name: zookeeper
@@ -138,9 +132,7 @@ services:
     networks:
       - backend
 
-  # ===============================
-  # Schema Registry
-  # ===============================
+
   schema-registry:
     image: confluentinc/cp-schema-registry:7.6.0
     container_name: schema-registry
@@ -155,9 +147,6 @@ services:
     networks:
       - backend
 
-  # ===============================
-  # Spring Boot App
-  # ===============================
   analytics-app:
     build: .
     container_name: analytics-app
