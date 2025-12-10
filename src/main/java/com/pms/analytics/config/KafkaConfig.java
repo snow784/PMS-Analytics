@@ -12,6 +12,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -39,9 +40,6 @@ public class KafkaConfig {
     @Value("${app.kafka-topic}")
     private String transactionsTopic;
 
-    // =======================
-    // Topic
-    // =======================
     @Bean
     public NewTopic transactionsTopic() {
         return TopicBuilder.name(transactionsTopic)
@@ -50,9 +48,6 @@ public class KafkaConfig {
                 .build();
     }
 
-    // =======================
-    // Producer Factory + Template
-    // =======================
     @Bean
     public ProducerFactory<String, Transaction> producerFactory() {
         Map<String, Object> props = new HashMap<>();
@@ -61,7 +56,7 @@ public class KafkaConfig {
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaProtobufSerializer.class);
         props.put("schema.registry.url", schemaRegistryUrl);
 
-        // Reliable producer settings
+
         props.put(ProducerConfig.RETRIES_CONFIG, 5);
         props.put(ProducerConfig.ACKS_CONFIG, "all");
         props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
@@ -73,13 +68,13 @@ public class KafkaConfig {
     }
 
     @Bean
+    @Primary
     public KafkaTemplate<String, Transaction> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 
-    // =======================
-    // Consumer Factory + Listener Container
-    // =======================
+
+
     @Bean(name = "protobufKafkaListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, Transaction> protobufKafkaListenerContainerFactory() {
         Map<String, Object> props = new HashMap<>();
@@ -115,5 +110,4 @@ public class KafkaConfig {
     public KafkaTemplate<String, RiskEventOuterClass.RiskEvent> riskEventKafkaTemplate() {
         return new KafkaTemplate<>(riskEventProducerFactory());
     }
-
 }

@@ -29,7 +29,7 @@ public class UnrealizedPnlScheduler {
 
     private final Map<String, BigDecimal> lastKnownPrices = new ConcurrentHashMap<>();
 
-    @Scheduled(fixedRateString = "10000")
+    @Scheduled(fixedRateString = "2000")
     public void computeAndBroadcast() {
 
         try {

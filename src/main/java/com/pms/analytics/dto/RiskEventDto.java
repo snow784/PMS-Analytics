@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RiskEventDto {
     private UUID portfolioId;
-    private float avgRateOfReturn;
-    private float sharpeRatio;
-    private float sortinoRatio;
+    private double avgRateOfReturn;   // changed to double
+    private double sharpeRatio;       // changed to double
+    private double sortinoRatio;      // changed to double
 }

@@ -165,15 +165,13 @@
                 <artifactId>protobuf-maven-plugin</artifactId>
                 <version>0.6.1</version>
                 <configuration>
-                    <!-- Location of .proto files -->
                     <protoSourceRoot>${project.basedir}/src/main/proto</protoSourceRoot>
-
-                    <!-- Where Java files will be generated -->
                     <outputDirectory>${project.build.directory}/generated-sources/protobuf/java</outputDirectory>
 
-
-                    <protocArtifact>com.google.protobuf:protoc:3.25.3:exe:${protoc.executable.os}</protocArtifact>
-
+                    <!-- Auto-selects Windows / Linux / Mac -->
+                    <protocArtifact>
+                        com.google.protobuf:protoc:3.25.3:exe:${os.detected.classifier}
+                    </protocArtifact>
                 </configuration>
 
                 <executions>
@@ -186,6 +184,14 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.7.1</version>
+                <extensions>true</extensions>
+            </plugin>
+
 
         </plugins>
 	</build>

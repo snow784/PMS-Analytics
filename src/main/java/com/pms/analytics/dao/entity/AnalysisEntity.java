@@ -17,7 +17,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name="positions")
+@Table(name="analysis")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

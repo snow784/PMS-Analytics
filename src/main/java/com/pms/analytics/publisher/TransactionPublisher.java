@@ -18,7 +18,7 @@ public class TransactionPublisher {
         Transaction protoMsg = TransactionMapper.toProto(dto);
 
         String key = dto.getPortfolioId().toString();
-        kafkaTemplate.send("transactions-topic",key, protoMsg);
+        kafkaTemplate.send("transactions",key, protoMsg);
         System.out.println("Published Transaction with key=" + key + ": " + protoMsg);
     }
 }

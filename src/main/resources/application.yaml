@@ -40,7 +40,7 @@ finnhub:
     key: ${API_KEY}
 
 app:
-  kafka-topic: transactions-topic
+  kafka-topic: transactions
 
 server:
   port: 8082

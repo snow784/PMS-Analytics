@@ -2,6 +2,8 @@ package com.pms.analytics.scheduler;
 
 import java.util.List;
 
+import com.pms.analytics.dao.AnalysisDao;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -15,14 +17,19 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PriceUpdateScheduler {
 
-    private final ExternalPriceClient priceClient;
-    private final RedisPriceCache priceCache;
-    private final TransactionsDao transactionsDao;
+    @Autowired
+    ExternalPriceClient priceClient;
 
-    @Scheduled(fixedRate = 10000)
+    @Autowired
+    RedisPriceCache priceCache;
+
+    @Autowired
+    AnalysisDao analysisDao;
+
+    @Scheduled(fixedRate = 2000)
     public void refreshPrices() {
 
-        List<String> symbols = transactionsDao.findAllActiveSymbols();
+        List<String> symbols = analysisDao.findAllSymbols();
         if (symbols.isEmpty()) return;
 
         symbols.forEach(symbol ->

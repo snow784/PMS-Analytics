@@ -35,15 +35,23 @@ public class RiskMetricsService {
     private static final int SCALE = 8;
     private static final MathContext MC = new MathContext(10, RoundingMode.HALF_UP);
 
-    public Optional<RiskEventDto> computeRiskEvent(UUID portfolioId) {
+    public void computeRiskEvent(UUID portfolioId) {
 
-        // Fetch last 29 days from DB
         List<PortfolioValueHistoryEntity> last29Days =
                 historyDao.findTop29ByPortfolioIdOrderByDateDesc(portfolioId);
 
-        // Fetch current portfolio value
-        List<AnalysisEntity> positions = analysisDao.findByIdPortfolioId(portfolioId);
-        if (positions.isEmpty() && last29Days.isEmpty()) return Optional.empty();
+        // Must have 29 historical entries
+        if (last29Days.size() < 29) {
+            System.out.println("Cannot compute risk - it needs atleast 29 days of history");
+            return ;
+        }
+
+        List<AnalysisEntity> positions =
+                analysisDao.findByIdPortfolioId(portfolioId);
+
+        if (positions.isEmpty()) {
+            return ;
+        }
 
         BigDecimal todayValue = positions.stream()
                 .map(p -> {
@@ -60,7 +68,7 @@ public class RiskMetricsService {
                 .map(PortfolioValueHistoryEntity::getPortfolioValue)
                 .forEach(values::add);
 
-        if (values.size() < 2) return Optional.empty();
+        if (values.size() < 30) return ;
 
         // Compute daily returns
         BigDecimal sum = BigDecimal.ZERO;
@@ -134,6 +142,6 @@ public class RiskMetricsService {
         outbox.setStatus("PENDING");
 
         analysisOutboxDao.save(outbox);
-        return Optional.of(event);
+        System.out.println("Risk computed - stored in outbox");
     }
 }

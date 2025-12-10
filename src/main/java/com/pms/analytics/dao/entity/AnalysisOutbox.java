@@ -17,18 +17,18 @@ public class AnalysisOutbox {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "outbox_id")
-    private UUID outboxId;
+    @Column(name = "AnalysisOutbox_id")
+    private UUID AnalysisOutboxId;
 
     @Column(name = "portfolio_id", nullable = false)
-    private UUID portfolioId;  // Aggregate ID
+    private UUID portfolioId;
 
     @Lob
     @Column(name = "payload", nullable = false)
-    private byte[] payload;    // Serialized Protobuf bytes
+    private byte[] payload;
 
     @Column(name = "status", nullable = false)
-    private String status;     // PENDING, SENT, FAILED
+    private String status;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
